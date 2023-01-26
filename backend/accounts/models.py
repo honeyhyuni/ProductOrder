@@ -8,8 +8,11 @@ from .managers import UserManager
 #  장고 기본 User 모델 상속
 class User(AbstractUser):
     username = None
-    email = models.EmailField(_('email address'), unique=True)
-    name = models.CharField(max_length=10)
+    first_name = None
+    last_name = None
+
+    email = models.EmailField(_('email address'), unique=True, help_text='Require')
+    name = models.CharField(max_length=10, help_text='Require')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']
