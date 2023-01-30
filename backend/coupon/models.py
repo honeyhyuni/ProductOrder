@@ -1,5 +1,9 @@
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.db import models
 from django.core.validators import ValidationError
+from .services import convert
 
 
 class TimestampedModel(models.Model):
@@ -60,7 +64,7 @@ class Coupon(models.Model):
     """
         등록된 쿠폰 Model
     """
-    coupon_rules = models.ForeignKey(CouponRules, on_delete=models.CASCADE)
+    coupon_rules = models.ForeignKey(CouponRules, on_delete=models.CASCADE, related_name='coupon')
     coupon_code = models.CharField("Coupon Code", max_length=15, unique=True,
                                    help_text='only between 10 and 15 of characters',
                                    editable=False)
@@ -68,7 +72,8 @@ class Coupon(models.Model):
     end_date = models.DateTimeField('End DT', null=True, blank=True)
     active = models.BooleanField("active", default=True, null=True)
 
-    # activate 필드 (User 에게) True - 등록전, False - 등록후 Null - 만기 완료
+    objects = models.Manager()
+
     class Meta:
         verbose_name = '등록된 쿠폰'
         verbose_name_plural = '등록된 쿠폰 모음'
@@ -76,4 +81,21 @@ class Coupon(models.Model):
         ordering = ('-start_date',)
 
     def __str__(self):
-        return f"{self.coupon_code[:5]}"
+        return f"{self.coupon_code[:10]}"
+
+
+class UserCoupon(TimestampedModel):
+    """
+        User 에게 부여된 쿠폰
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user')
+    coupon = models.OneToOneField(Coupon, on_delete=models.CASCADE, related_name='coupon')
+    status = models.BooleanField('Status', null=True, default=True)
+
+    class Meta:
+        verbose_name = '유저-쿠폰'
+        verbose_name_plural = '유저-쿠폰 모음'
+        db_table = 'user_coupon'
+
+    def __str__(self):
+        return f"{self.user, self.coupon}"
