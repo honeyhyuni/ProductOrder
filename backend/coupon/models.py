@@ -1,9 +1,6 @@
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db import models
 from django.core.validators import ValidationError
-from .services import convert
 
 
 class TimestampedModel(models.Model):
@@ -34,7 +31,9 @@ class CouponRules(TimestampedModel):
                                        choices=Discount_Choice,
                                        default=FlatRate_discount,
                                        )
-    discount = models.PositiveIntegerField("Discount", help_text='if select PD 5%~100%, else 1000~50000')
+    discount = models.PositiveIntegerField("Discount", help_text='if select PD 5%~100%, else 5000~50000')
+
+    objects = models.Manager()
 
     def clean(self):
         """
@@ -54,7 +53,7 @@ class CouponRules(TimestampedModel):
         verbose_name = '쿠폰 베이스'
         verbose_name_plural = '쿠폰 베이스 모음'
         db_table = 'coupon_rules'
-        ordering = ('-created_at',)
+        ordering = ('created_at',)
 
     def __str__(self):
         return self.coupon_name
@@ -81,7 +80,7 @@ class Coupon(models.Model):
         ordering = ('-start_date',)
 
     def __str__(self):
-        return f"{self.coupon_code[:10]}"
+        return f"{self.coupon_code}"
 
 
 class UserCoupon(TimestampedModel):
@@ -91,6 +90,8 @@ class UserCoupon(TimestampedModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user')
     coupon = models.OneToOneField(Coupon, on_delete=models.CASCADE, related_name='coupon')
     status = models.BooleanField('Status', null=True, default=True)
+
+    objects = models.Manager()
 
     class Meta:
         verbose_name = '유저-쿠폰'
