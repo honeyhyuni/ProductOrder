@@ -1,7 +1,9 @@
 from datetime import datetime
-
 from dateutil.relativedelta import relativedelta
-from rest_framework import serializers
+from rest_framework.response import Response
+from rest_framework import serializers, status
+from rest_framework.exceptions import ValidationError
+
 from .models import Coupon, CouponRules, UserCoupon
 from .services import convert
 
@@ -24,7 +26,7 @@ class CouponBaseSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Coupon
-        fields = '__all__'
+        fields = ('coupon_rules', 'coupon_code')
 
 
 class UserCouponBaseSerializers(serializers.ModelSerializer):
@@ -46,7 +48,7 @@ class CouponListCreateSerializers(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """
-            Random 한 10~15 자릿수 문자열 쿠폰 코드 등록
+            Random 한 10~15 자릿수 문자열 쿠폰 코드 등록, 유효 기간 default 1년
         """
         new_coupon_code = convert()
         while Coupon.objects.filter(coupon_code=new_coupon_code).exists():
@@ -75,11 +77,25 @@ class UserCouponListSerializers(serializers.ModelSerializer):
     class Meta:
         model = UserCoupon
         fields = ('user', 'status', 'coupon',)
-        read_only_fields = ('status',)
+        read_only_fields = ('user', 'status', 'coupon',)
 
 
-class CreateUserCouponSerializers(serializers.Serializer):
-    coupon_rules = CouponRulesBaseSerializers()
+class CreateUserCouponSerializers(serializers.ModelSerializer):
     coupon = CouponBaseSerializers()
+    user = serializers.StringRelatedField(read_only=True)
 
+    class Meta:
+        model = UserCoupon
+        fields = ('user', 'coupon',)
 
+    def create(self, validated_data):
+        try:
+            temp_coupon = Coupon.objects.filter(coupon_rules=validated_data['coupon']['coupon_rules']).filter(
+                active=True).first()
+            userCoupon = UserCoupon.objects.create(user=self.context['request'].user, coupon=temp_coupon, status=True)
+            if userCoupon:
+                temp_coupon.active = False
+                temp_coupon.save()
+            return userCoupon
+        except:
+            return Response("haven't coupon", status=status.HTTP_404_NOT_FOUND)
