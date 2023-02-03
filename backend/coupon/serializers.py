@@ -23,10 +23,11 @@ class CouponBaseSerializers(serializers.ModelSerializer):
     """
         Coupon Base Serializers
     """
-
+    end_date = serializers.DateTimeField(read_only=True)
     class Meta:
         model = Coupon
-        fields = ('coupon_rules', 'coupon_code')
+        fields = ('coupon_rules', 'coupon_code', 'end_date')
+        # fields = '__all__'
 
 
 class UserCouponBaseSerializers(serializers.ModelSerializer):
@@ -70,32 +71,22 @@ class CouponRuleListSerializers(serializers.Serializer):
     couponRulesList = serializers.ListSerializer(child=serializers.CharField())
 
 
-class UserCouponListSerializers(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
-    coupon = serializers.StringRelatedField()
-
-    class Meta:
-        model = UserCoupon
-        fields = ('user', 'status', 'coupon',)
-        read_only_fields = ('user', 'status', 'coupon',)
-
-
 class CreateUserCouponSerializers(serializers.ModelSerializer):
     coupon = CouponBaseSerializers()
     user = serializers.StringRelatedField(read_only=True)
+    status = serializers.BooleanField(read_only=True, default=True)
 
     class Meta:
         model = UserCoupon
-        fields = ('user', 'coupon',)
+        fields = ('user', 'coupon', 'status', )
 
     def create(self, validated_data):
-        try:
-            temp_coupon = Coupon.objects.filter(coupon_rules=validated_data['coupon']['coupon_rules']).filter(
-                active=True).first()
-            userCoupon = UserCoupon.objects.create(user=self.context['request'].user, coupon=temp_coupon, status=True)
-            if userCoupon:
-                temp_coupon.active = False
-                temp_coupon.save()
-            return userCoupon
-        except:
-            return Response("haven't coupon", status=status.HTTP_404_NOT_FOUND)
+        """
+            UserCoupon 생성 및 유저에게 부여된 Coupon 활성화 False
+        """
+        user = self.context['user']
+        coupon = self.context['coupon']
+        user_coupon = UserCoupon.objects.create(user=user, coupon=coupon)
+        coupon.active = False
+        coupon.save()
+        return user_coupon

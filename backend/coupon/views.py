@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Coupon, CouponRules, UserCoupon
 from .serializers import CouponListCreateSerializers, CouponRuleListSerializers, \
-    CreateUserCouponSerializers, UserCouponListSerializers
+    CreateUserCouponSerializers
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class PostPageNumberPagination(PageNumberPagination):
@@ -72,25 +73,23 @@ class AllCouponRulesList(APIView):
 class UserCouponAPIView(ListCreateAPIView):
     """
         GET -> 로그인 한 User 의 쿠폰 List
+        POST -> 로그인한 User 에게 쿠폰 부여 Coupon_rules 는 선택해야함
     """
     queryset = UserCoupon.objects.all()
     permission_classes = (AllowAny,)
     # pagination_class = PostPageNumberPagination
-    serializer_class = UserCouponListSerializers
-    serializer_classes = {
-        'list': UserCouponListSerializers,
-        'create': CreateUserCouponSerializers
-    }
+    serializer_class = CreateUserCouponSerializers
+    # serializer_classes = {
+    #     'list': UserCouponListSerializers,
+    #     'create': CreateUserCouponSerializers
+    # }
 
-    def get_serializer_context(self):
-        return {"request": self.request}
+    # def get_serializer_class(self, *args, **kwargs):
+    #     if self.request.method == "POST":
+    #         return self.serializer_classes['create']
+    #     return self.serializer_classes['list']
 
-    def get_serializer_class(self, *args, **kwargs):
-        if self.request.method == "POST":
-            return self.serializer_classes['create']
-        return self.serializer_classes['list']
-
-    def filter_queryset(self, queryset):
+    def get_queryset(self):
         return UserCoupon.objects.filter(user=self.request.user)
 
     def list(self, request, *args, **kwargs):
@@ -104,18 +103,19 @@ class UserCouponAPIView(ListCreateAPIView):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        try:
-            temp_coupon = Coupon.objects.filter(coupon_rules=self.request.data['coupon.coupon_rules']).filter(
-                active=True).first()
-            userCoupon = UserCoupon.objects.create(user=self.request.user, coupon=temp_coupon, status=True)
-            if userCoupon:
-                temp_coupon.active = False
-                temp_coupon.save()
-            # return userCoupon
-        except :
-            return Response("dasfsdfasdf", status=status.HTTP_404_NOT_FOUND)
+        """
+            User가 선택한 쿠폰의 active = True 인 객체를 하나 꺼내온후
+            active 를 False 로 바꾸고 User에게 쿠폰을 부여한다.
+        """
+        temp_coupon = Coupon.objects.filter(coupon_rules=self.request.data['coupon.coupon_rules']).filter(
+            active=True).first()
 
-        serializer = self.get_serializer(data=request.data)
+        if temp_coupon is None:
+            return Response("this Type haven't Coupon", status=status.HTTP_404_NOT_FOUND)
+
+        context = {'user': self.request.user, 'coupon': temp_coupon}
+
+        serializer = self.get_serializer(data=request.data, context=context)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
