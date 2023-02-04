@@ -32,12 +32,16 @@ class Product(TimestampedModel):
     """
         제품 Model
     """
-    category = models.ForeignKey(Category, on_delete=models.SET_DEFAULT, default="ETC")
+    category = models.ForeignKey(Category, on_delete=models.SET_DEFAULT, default="ETC", related_name='product')
     name = models.CharField("Name", max_length=50)
     photo = models.ImageField("Photo", upload_to='product/%Y/%m/%d', help_text="Require")
     price = models.PositiveIntegerField("Price", help_text="Price can't negative")
-    like_user_set = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True,
+    like_user_set = models.ManyToManyField(settings.AUTH_USER_MODEL, default=0,
                                            related_name='like_post_set')
+    content = models.CharField('Content', max_length=500)
+    quantity = models.PositiveIntegerField('Quantity', default=0)
+
+    objects = models.Manager()
 
     class Meta:
         verbose_name = '제품'
@@ -50,4 +54,9 @@ class Product(TimestampedModel):
 
     @property
     def like_count(self):
-        self.like_user_set.count()
+        return self.like_user_set.count()
+
+
+# class BuyProduct(TimestampedModel):
+#     product = models.ForeignKey(Product, on_delete=models.SET_NULL)
+#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL)
