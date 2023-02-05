@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -9,24 +9,38 @@ from .serializers import GetProductSerializers, NGetProductSerializers, GetLogin
 
 
 class ProductAPIView(ModelViewSet):
+    """
+        Product CRUD
+    """
     queryset = Product.objects.all()
     serializer_class = GetProductSerializers
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes_by_action = {
+        'get': (IsAuthenticatedOrReadOnly,),
+        'nGet': (IsAdminUser,)
+    }
     serializer_classes = {
         'LoginUser': GetLoginProductSerializers,
         'get': GetProductSerializers,
         'nGet': NGetProductSerializers,
     }
+
     """
-        Product CRUD
+        Get permission -> IsAuthenticatedOrReadOnly
+        Not Get('POST', PUT, PATCH, DELETE) permission -> IsAdminUser
     """
+    def get_permissions(self):
+        if self.action == 'list' or self.action == 'retrieve':
+            self.permission_classes = self.permission_classes_by_action['get']
+        self.permission_classes = self.permission_classes_by_action['nGet']
+        return super().get_permissions()
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
         if self.request.user.is_authenticated:
-            context['login'] = self.request
-            return context
+            context['like'] = self.request
         return context
+
 
     def get_serializer_class(self, *args, **kwargs):
         if self.request.user.is_anonymous:
@@ -50,6 +64,13 @@ class ProductAPIView(ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -80,6 +101,9 @@ class ProductAPIView(ModelViewSet):
     def perform_update(self, serializer):
         serializer.save()
 
+    """
+        좋아요, 좋아요 취소 API
+    """
     @action(detail=True, methods=["POST"])
     def like(self, request, pk):
         product = self.get_object()

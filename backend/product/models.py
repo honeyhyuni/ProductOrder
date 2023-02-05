@@ -56,7 +56,3 @@ class Product(TimestampedModel):
     def like_count(self):
         return self.like_user_set.count()
 
-
-# class BuyProduct(TimestampedModel):
-#     product = models.ForeignKey(Product, on_delete=models.SET_NULL)
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL)

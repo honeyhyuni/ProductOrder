@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import ValidationError
 
 from .models import Product
 
@@ -12,8 +12,8 @@ class GetLoginProductSerializers(serializers.ModelSerializer):
 
     # True is already Like, False is None Like
     def is_like_field(self, product):
-        if 'login' in self.context:
-            user = self.context['request'].user
+        if 'like' in self.context:
+            user = self.context['like'].user
             return product.like_user_set.filter(pk=user.pk).exists()
         return False
 
@@ -43,7 +43,10 @@ class NGetProductSerializers(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('name', 'category', 'content', 'price', 'photo', 'created_at', 'updated_at', 'quantity',)
-
+    
+    """
+        유효성 검사
+    """
     def validate_price(self, value):
         if 1000 > value:
             raise ValidationError('1000원 미만의 상품은 등록할수 없습니다.')
