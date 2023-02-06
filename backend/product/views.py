@@ -1,11 +1,20 @@
+from datetime import datetime
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
+from coupon.models import UserCoupon, Coupon
+from order.serializers import OrderSerializer
 from .models import Product
-from .serializers import GetProductSerializers, NGetProductSerializers, GetLoginProductSerializers
+from .serializers import GetProductSerializers, NGetProductSerializers, GetLoginProductSerializers, \
+    GETOrderProductSerializer, POSTOrderProductSerializer, BaseProductSerializer
 
 
 class ProductAPIView(ModelViewSet):
@@ -29,6 +38,7 @@ class ProductAPIView(ModelViewSet):
         Get permission -> IsAuthenticatedOrReadOnly
         Not Get('POST', PUT, PATCH, DELETE) permission -> IsAdminUser
     """
+
     def get_permissions(self):
         if self.action == 'list' or self.action == 'retrieve':
             self.permission_classes = self.permission_classes_by_action['get']
@@ -40,7 +50,6 @@ class ProductAPIView(ModelViewSet):
         if self.request.user.is_authenticated:
             context['like'] = self.request
         return context
-
 
     def get_serializer_class(self, *args, **kwargs):
         if self.request.user.is_anonymous:
@@ -104,6 +113,7 @@ class ProductAPIView(ModelViewSet):
     """
         좋아요, 좋아요 취소 API
     """
+
     @action(detail=True, methods=["POST"])
     def like(self, request, pk):
         product = self.get_object()
@@ -115,3 +125,70 @@ class ProductAPIView(ModelViewSet):
         product = self.get_object()
         product.like_user_set.remove(self.request.user)
         return Response(status.HTTP_204_NO_CONTENT)
+
+
+class TestView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            id = kwargs['pk']
+            if not Product.objects.filter(pk=id).exists():
+                return Response('해당 상품은 존재하지 않습니다.')
+            if not UserCoupon.objects.filter(user=self.request.user, status=True).exists():
+                return Response("해당 쿠폰이 없습니다.", status=status.HTTP_404_NOT_FOUND)
+            product = Product.objects.get(pk=id)
+            coupon = UserCoupon.objects.filter(user=self.request.user, status=True)
+            data = {
+                'product': product,
+                'coupon': coupon,
+            }
+            serializer = GETOrderProductSerializer(instance=data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except KeyError:
+            Response(status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request, *args, **kwargs):
+        """
+            제품 쿠폰 을 사용하여 구매
+        """
+        coupon_id = None
+        try:
+            id_ = kwargs['pk']
+            user_quantity = self.request.data['user_quantity']
+            if not Product.objects.filter(pk=id_).exists():
+                return Response('해당 상품은 존재하지 않습니다.', status=status.HTTP_404_NOT_FOUND)
+            if 'coupon_id' in self.request.data:
+                coupon_id = self.request.data['coupon_id']
+                if not UserCoupon.objects.filter(user=self.request.user, pk=coupon_id, status=True).exists():
+                    return Response("해당 쿠폰이 없습니다.", status=status.HTTP_404_NOT_FOUND)
+        except KeyError:
+            return Response("잘못된 파라미터 입력", status=status.HTTP_404_NOT_FOUND)
+
+        product = Product.objects.get(pk=id_)
+
+        if coupon_id is not None:
+            coupon = UserCoupon.objects.get(user=self.request.user, pk=coupon_id, status=True)
+            if coupon.coupon.end_date < timezone.now():
+                return Response("유효기간이 지난 쿠폰입니다.", status=status.HTTP_400_BAD_REQUEST)
+            if coupon.coupon.coupon_rules.discount_policy == 'PD':
+                amount = int(user_quantity * product.price * (1 - coupon.coupon.coupon_rules.discount / 100))
+            else:
+                amount = int(user_quantity * product.price - coupon.coupon.coupon_rules.discount)
+        else:
+            coupon = None
+            amount = int(user_quantity * product.price)
+
+        if product.quantity - user_quantity < 0:
+            return Response("제품의 수량이 부족합니다.", status=status.HTTP_400_BAD_REQUEST)
+
+        data = {
+            'product': product,
+            'coupon': coupon,
+            'user': request.user,
+            'amount': amount,
+        }
+        context = {'product': product, 'coupon': coupon, 'user': request.user, 'user_quantity': user_quantity}
+        serializer = OrderSerializer(data=data, context=context)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

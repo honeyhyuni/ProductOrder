@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
-
+from coupon.serializers import UserCouponBaseSerializers
+from order.models import Order
 from .models import Product
 
 
@@ -43,10 +44,11 @@ class NGetProductSerializers(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ('name', 'category', 'content', 'price', 'photo', 'created_at', 'updated_at', 'quantity',)
-    
+
     """
         유효성 검사
     """
+
     def validate_price(self, value):
         if 1000 > value:
             raise ValidationError('1000원 미만의 상품은 등록할수 없습니다.')
@@ -69,3 +71,24 @@ class NGetProductSerializers(serializers.ModelSerializer):
         instance.quantity = validated_data.get('quantity', instance.quantity)
         instance.save()
         return instance
+
+
+class BaseProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+
+class GETOrderProductSerializer(serializers.Serializer):
+    product = BaseProductSerializer()
+    coupon = UserCouponBaseSerializers(many=True)
+    # quantity = serializers.IntegerField()
+    # class Meta:
+    #     model = Product
+    #     fields = '__all__'
+    #     # depth = 3
+
+
+class POSTOrderProductSerializer(serializers.Serializer):
+    product = BaseProductSerializer()
+    coupon = UserCouponBaseSerializers()
