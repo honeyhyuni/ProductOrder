@@ -1,20 +1,17 @@
-from datetime import datetime
-
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from coupon.models import UserCoupon, Coupon
+from coupon.models import UserCoupon
+from coupon.views import PostPageNumberPagination
 from order.serializers import OrderSerializer
 from .models import Product
 from .serializers import GetProductSerializers, NGetProductSerializers, GetLoginProductSerializers, \
-    GETOrderProductSerializer, POSTOrderProductSerializer, BaseProductSerializer
+    GETOrderProductSerializer
 
 
 class ProductAPIView(ModelViewSet):
@@ -24,6 +21,8 @@ class ProductAPIView(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = GetProductSerializers
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = PostPageNumberPagination
+
     permission_classes_by_action = {
         'get': (IsAuthenticatedOrReadOnly,),
         'nGet': (IsAdminUser,)
@@ -130,6 +129,9 @@ class ProductAPIView(ModelViewSet):
 class TestView(APIView):
 
     def get(self, request, *args, **kwargs):
+        """
+            제품 확인 및 사용 가능한 쿠폰 확인
+        """
         try:
             id = kwargs['pk']
             if not Product.objects.filter(pk=id).exists():
@@ -149,10 +151,13 @@ class TestView(APIView):
 
     def post(self, request, *args, **kwargs):
         """
-            제품 쿠폰 을 사용하여 구매
+            제품 구매
         """
         coupon_id = None
         try:
+            """
+                쿠폰 여부 확인 및 해당 제품 확인
+            """
             id_ = kwargs['pk']
             user_quantity = self.request.data['user_quantity']
             if not Product.objects.filter(pk=id_).exists():
@@ -166,6 +171,9 @@ class TestView(APIView):
 
         product = Product.objects.get(pk=id_)
 
+        """
+            제품 가격 체크후 return
+        """
         if coupon_id is not None:
             coupon = UserCoupon.objects.get(user=self.request.user, pk=coupon_id, status=True)
             if coupon.coupon.end_date < timezone.now():

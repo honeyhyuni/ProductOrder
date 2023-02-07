@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from coupon.serializers import UserCouponBaseSerializers
-from order.models import Order
 from .models import Product
 
 
@@ -82,13 +81,3 @@ class BaseProductSerializer(serializers.ModelSerializer):
 class GETOrderProductSerializer(serializers.Serializer):
     product = BaseProductSerializer()
     coupon = UserCouponBaseSerializers(many=True)
-    # quantity = serializers.IntegerField()
-    # class Meta:
-    #     model = Product
-    #     fields = '__all__'
-    #     # depth = 3
-
-
-class POSTOrderProductSerializer(serializers.Serializer):
-    product = BaseProductSerializer()
-    coupon = UserCouponBaseSerializers()
