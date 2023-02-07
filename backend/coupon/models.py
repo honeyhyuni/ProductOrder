@@ -87,8 +87,8 @@ class UserCoupon(TimestampedModel):
     """
         User 에게 부여된 쿠폰
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user')
-    coupon = models.OneToOneField(Coupon, on_delete=models.CASCADE, related_name='coupon')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_coupon')
+    coupon = models.OneToOneField(Coupon, on_delete=models.CASCADE, related_name='user_coupon_code')
     status = models.BooleanField('Status', null=True, default=True)
 
     objects = models.Manager()
@@ -99,4 +99,4 @@ class UserCoupon(TimestampedModel):
         db_table = 'user_coupon'
 
     def __str__(self):
-        return f"{self.user, self.coupon}"
+        return f"{self.coupon}"

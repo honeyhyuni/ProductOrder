@@ -1,8 +1,6 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from rest_framework.response import Response
-from rest_framework import serializers, status
-from rest_framework.exceptions import ValidationError
+from rest_framework import serializers
 
 from .models import Coupon, CouponRules, UserCoupon
 from .services import convert
@@ -24,6 +22,7 @@ class CouponBaseSerializers(serializers.ModelSerializer):
         Coupon Base Serializers
     """
     end_date = serializers.DateTimeField(read_only=True)
+
     class Meta:
         model = Coupon
         fields = ('coupon_rules', 'coupon_code', 'end_date')
@@ -44,7 +43,7 @@ class CouponListCreateSerializers(serializers.ModelSerializer):
     """
         Only Coupon Create List API Serializers
     """
-    active = serializers.BooleanField(default=True)
+    active = serializers.BooleanField(default=True, read_only=True)
     end_date = serializers.DateTimeField(read_only=True)
 
     def create(self, validated_data):
@@ -78,7 +77,7 @@ class CreateUserCouponSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = UserCoupon
-        fields = ('user', 'coupon', 'status', )
+        fields = ('user', 'coupon', 'status',)
 
     def create(self, validated_data):
         """

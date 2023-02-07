@@ -3,7 +3,7 @@ from .models import Coupon, CouponRules, UserCoupon
 
 
 @admin.register(CouponRules)
-class UserCouponAdmin(admin.ModelAdmin):
+class CouponRulesAdmin(admin.ModelAdmin):
     list_display = ('coupon_name', 'discount_policy', 'discount', 'created_at',)
     list_display_links = ('coupon_name',)
 
