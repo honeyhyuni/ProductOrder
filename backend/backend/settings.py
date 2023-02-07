@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     # local apps
     'product',
     'accounts',
+    'coupon',
+    'order',
     # third party
     'rest_framework',
     'rest_framework.authtoken',
@@ -139,6 +141,12 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'TEST_REQUEST_RENDERER_CLASSES': [
+        'rest_framework.renderers.MultiPartRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.TemplateHTMLRenderer'
+    ],
 }
 
 AUTH_USER_MODEL = "accounts.User"
