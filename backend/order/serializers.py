@@ -4,13 +4,17 @@ from order.models import Order
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField()
+    user = serializers.StringRelatedField(read_only=True)
     product = serializers.StringRelatedField()
     coupon = serializers.StringRelatedField()
 
     class Meta:
         model = Order
         fields = ('user', 'product', 'coupon', 'amount',)
+
+    """
+        주문 DB Create 및 UserCoupon DB Update
+    """
 
     def create(self, validated_data):
         product = self.context['product']
@@ -24,3 +28,12 @@ class OrderSerializer(serializers.ModelSerializer):
             coupon.status = False
             coupon.save()
         return order
+
+
+class OrderListRetrieveSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    product = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Order
+        exclude = ('id',)
