@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from coupon.serializers import UserCouponBaseSerializers
-from .models import Product
+from .models import Product, Category
 
 
 class GetLoginProductSerializers(serializers.ModelSerializer):
@@ -81,3 +81,12 @@ class BaseProductSerializer(serializers.ModelSerializer):
 class GETOrderProductSerializer(serializers.Serializer):
     product = BaseProductSerializer()
     coupon = UserCouponBaseSerializers(many=True)
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ('name', )
+
+    def create(self, validated_data):
+        return Category.objects.create(**validated_data)

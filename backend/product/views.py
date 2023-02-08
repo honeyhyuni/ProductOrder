@@ -1,6 +1,7 @@
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,9 +10,9 @@ from rest_framework.viewsets import ModelViewSet
 from coupon.models import UserCoupon
 from coupon.views import PostPageNumberPagination
 from order.serializers import OrderSerializer
-from .models import Product
+from .models import Product, Category
 from .serializers import GetProductSerializers, NGetProductSerializers, GetLoginProductSerializers, \
-    GETOrderProductSerializer
+    GETOrderProductSerializer, CategorySerializer
 
 
 class ProductAPIView(ModelViewSet):
@@ -39,9 +40,10 @@ class ProductAPIView(ModelViewSet):
     """
 
     def get_permissions(self):
-        if self.action == 'list' or self.action == 'retrieve':
+        if self.action == 'list' or self.action == 'retrieve' or self.action == 'like':
             self.permission_classes = self.permission_classes_by_action['get']
-        self.permission_classes = self.permission_classes_by_action['nGet']
+        else:
+            self.permission_classes = self.permission_classes_by_action['nGet']
         return super().get_permissions()
 
     def get_serializer_context(self):
@@ -126,7 +128,7 @@ class ProductAPIView(ModelViewSet):
         return Response(status.HTTP_204_NO_CONTENT)
 
 
-class TestView(APIView):
+class ProductDetailView(APIView):
 
     def get(self, request, *args, **kwargs):
         """
@@ -200,3 +202,42 @@ class TestView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class CategoryAPIView(ListCreateAPIView):
+    """
+        Category ListCreate API
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, )
+
+    permission_classes_by_action = {
+        'get': (IsAuthenticatedOrReadOnly,),
+        'nGet': (IsAdminUser,)
+    }
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            self.permission_classes = self.permission_classes_by_action['get']
+        else:
+            self.permission_classes = self.permission_classes_by_action['nGet']
+        return super().get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
