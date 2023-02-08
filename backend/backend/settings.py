@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -84,11 +85,21 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "sqlite3",
+#     }
+# }
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "sqlite3",
-    }
+  'default' : {
+    'ENGINE': 'django.db.backends.mysql',
+    'NAME': 'order_product',
+    'USER': 'root',
+    'PASSWORD': '1234',
+    'HOST': 'localhost',
+    'PORT': '3306',
+  }
 }
 
 # Password validation
@@ -136,7 +147,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -149,4 +160,20 @@ REST_FRAMEWORK = {
     ],
 }
 
-AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = 'accounts.User'
+REST_USE_JWT = True  # JWT 사용 여부 : O
+JWT_AUTH_COOKIE = 'my-app-auth'
+JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
+
+ACCOUNT_UNIQUE_EMAIL = True  # email : Unique
+ACCOUNT_USERNAME_REQUIRED = False  # username 필수 여부 : X
+ACCOUNT_EMAIL_REQUIRED = True  # Email 필수 여부 : O
+ACCOUNT_AUTHENTICATION_METHOD = 'email'  # 로그인 인증 수단 : email
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=3),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}

@@ -2,7 +2,7 @@ from collections import OrderedDict
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Coupon, CouponRules, UserCoupon
@@ -28,7 +28,7 @@ class PostPageNumberPagination(PageNumberPagination):
 class CreateListCoupon(ListCreateAPIView):
     queryset = Coupon.objects.all()
     serializer_class = CouponListCreateSerializers
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAdminUser,)
     pagination_class = PostPageNumberPagination
     """
           GET -> coupon List
@@ -54,7 +54,7 @@ class CreateListCoupon(ListCreateAPIView):
 
 
 class AllCouponRulesList(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     """
         Get -> CouponRules List
     """
@@ -75,7 +75,7 @@ class UserCouponAPIView(ListCreateAPIView):
         POST -> 로그인한 User 에게 쿠폰 부여 Coupon_rules 는 선택해야함
     """
     queryset = UserCoupon.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticated, )
     pagination_class = PostPageNumberPagination
     serializer_class = CreateUserCouponSerializers
 
@@ -97,7 +97,8 @@ class UserCouponAPIView(ListCreateAPIView):
             User가 선택한 쿠폰의 active = True 인 객체를 하나 꺼내온후
             active 를 False 로 바꾸고 User에게 쿠폰을 부여한다.
         """
-        temp_coupon = Coupon.objects.filter(coupon_rules=self.request.data['coupon.coupon_rules']).filter(
+        print("111111", self.request.data)
+        temp_coupon = Coupon.objects.filter(coupon_rules=self.request.data['coupon']['coupon_rules']).filter(
             active=True).first()
 
         if temp_coupon is None:

@@ -8,10 +8,10 @@ from coupon.models import UserCoupon
 # Create your models here.
 
 class Order(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_DEFAULT, default='secession user',
-                             related_name='user_order')
-    product = models.ForeignKey(Product, on_delete=models.SET_DEFAULT, default='remove product',
-                                related_name='product_order')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, default='secession user',
+                             related_name='user_order', null=True)
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, default='remove product',
+                                related_name='product_order', null=True)
     coupon = models.ForeignKey(UserCoupon, on_delete=models.SET_DEFAULT, null=True, default='', related_name='coupon_order')
     created_at = models.DateTimeField(auto_now_add=True)
     amount = models.PositiveIntegerField()
