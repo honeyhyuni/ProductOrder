@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: for_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE : order-product
+      MYSQL_USER : 'root'
+      MYSQL_PASSWORD : '1234'
+      MYSQL_ROOT_PASSWORD : '1234'
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+      - ./tmp/slack_bot/mysqld:/var/run/mysqld
+    ports:
+      - "3306:3306"
+    networks:
+      - order-product
+
+  app:
+    container_name: for_django
+    build:
+      dockerfile: Dockerfile
+      context: .
+
+    volumes:
+      - /usr/src/app/django
+    depends_on:
+      - db
+    stdin_open: true
+    tty: true
+    ports:
+      - "8000:8000"
+    networks:
+      - order-product
+#    command: python manage.py runserver
+
+networks:
+  order-product:
