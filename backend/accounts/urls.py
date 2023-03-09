@@ -1,7 +1,7 @@
-
-from django.urls import path, include
-
-urlpatterns = [
-    path('signup/', include('dj_rest_auth.registration.urls')),
-    path('', include('dj_rest_auth.urls')),  # 로그인, 로그아웃, TokenRefresh, changePassword ETC
+from django.urls import path
+from .views import SignUpAPIView, LoginAPIView, LogoutAPIView
+urlpatterns=[
+    path('signup/', SignUpAPIView.as_view(), name='signup'),
+    path('login/', LoginAPIView.as_view(), name='login'),
+    path('logout/', LogoutAPIView.as_view(), name='logout'),
 ]
