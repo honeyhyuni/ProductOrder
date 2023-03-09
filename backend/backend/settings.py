@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-8eta0ys__8hryjjfsu-mv@niniz3wkc+_7=8$2cum_dydbpgz4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -44,11 +44,6 @@ INSTALLED_APPS = [
     'order',
     # third party
     'rest_framework',
-    'rest_framework.authtoken',
-    'dj_rest_auth',
-    'allauth',
-    'allauth.account',
-    'dj_rest_auth.registration',
     'django_filters',
 ]
 
@@ -92,14 +87,17 @@ WSGI_APPLICATION = "backend.wsgi.application"
 #     }
 # }
 DATABASES = {
-  'default' : {
-    'ENGINE': 'django.db.backends.mysql',
-    'NAME': 'order_product',
-    'USER': 'root',
-    'PASSWORD': '1234',
-    'HOST': 'localhost',
-    'PORT': '3306',
-  }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'psql_db',
+        'USER': 'root',
+        'PASSWORD': '1234',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'TEST': {
+        'NAME': 'test_psql_db',
+    },
 }
 
 # Password validation
@@ -147,7 +145,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -161,16 +159,6 @@ REST_FRAMEWORK = {
 }
 
 AUTH_USER_MODEL = 'accounts.User'
-REST_USE_JWT = True  # JWT 사용 여부 : O
-JWT_AUTH_COOKIE = 'my-app-auth'
-JWT_AUTH_REFRESH_COOKIE = 'my-refresh-token'
-
-ACCOUNT_UNIQUE_EMAIL = True  # email : Unique
-ACCOUNT_USERNAME_REQUIRED = False  # username 필수 여부 : X
-ACCOUNT_EMAIL_REQUIRED = True  # Email 필수 여부 : O
-ACCOUNT_AUTHENTICATION_METHOD = 'email'  # 로그인 인증 수단 : email
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 
 SIMPLE_JWT = {
