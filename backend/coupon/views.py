@@ -97,7 +97,6 @@ class UserCouponAPIView(ListCreateAPIView):
             User가 선택한 쿠폰의 active = True 인 객체를 하나 꺼내온후
             active 를 False 로 바꾸고 User에게 쿠폰을 부여한다.
         """
-        print("111111", self.request.data)
         temp_coupon = Coupon.objects.filter(coupon_rules=self.request.data['coupon']['coupon_rules']).filter(
             active=True).first()
 
