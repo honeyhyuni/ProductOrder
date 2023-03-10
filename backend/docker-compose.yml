@@ -18,11 +18,11 @@ services:
 
   app:
     container_name: for_django
+    restart: always
     build:
       dockerfile: Dockerfile
       context: .
-#    command:
-#      - python manage.py runserver 0.0.0.0:8000
+
     volumes:
       - /usr/src/app/django
     depends_on:
@@ -33,7 +33,7 @@ services:
       - "8000:8000"
     networks:
       - order-product
-#    command: python manage.py runserver
+
 
 networks:
   order-product:
