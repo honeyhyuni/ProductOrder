@@ -10,7 +10,6 @@ class SignUpSerializer(serializers.ModelSerializer):
     """
     check_password = serializers.CharField(style={'input_type': 'password'}, write_only=True
                                            , required=True)
-    name = serializers.CharField(source='name')
 
     class Meta:
         model = User

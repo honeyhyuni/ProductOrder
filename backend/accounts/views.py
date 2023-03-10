@@ -32,7 +32,7 @@ class SignUpAPIView(CreateAPIView):
                     "status": "USER_CREATE_OK"
                 }
             }, status=status.HTTP_201_CREATED, headers=headers)
-        return errorMessage('잘못된 형식 입니다.', status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': '잘못된 형식 입니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginAPIView(APIView):
@@ -48,6 +48,7 @@ class LoginAPIView(APIView):
         refresh 토큰 유효할시 access 토큰 다시 생성,
         아닐시 재로그인 유도 
     """
+
     def get(self, request):
         try:
             # access token을 decode 해서 유저 id 추출 => 유저 식별
@@ -58,7 +59,7 @@ class LoginAPIView(APIView):
             serializer = LoginSerializer(instance=user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except KeyError:
-            return Response('토큰 유효기간이 끝났습니다. 로그인을 다시해주세요.', status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail':'토큰 유효기간이 끝났습니다. 로그인을 다시해주세요.'}, status=status.HTTP_403_FORBIDDEN)
 
         except jwt.exceptions.ExpiredSignatureError:
             # 토큰 만료 시 토큰 갱신
@@ -112,7 +113,7 @@ class LoginAPIView(APIView):
             response.set_cookie("access", access_token, httponly=True)
             response.set_cookie("refresh", refresh_token, httponly=True)
             return response
-        return Response('존재하지 않은 유저입니다.', status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'detail':'존재하지 않은 유저입니다.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutAPIView(APIView):
