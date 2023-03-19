@@ -57,7 +57,7 @@
 | --- | --- | --- |
 | 쿠폰 목록 조회 | GET | /coupon |
 | 쿠폰 등록 | POST | /coupon |
-| 쿠폰 룰 목록 조회 | GET | /coupon/coupon_rules |
+| 쿠폰 룰 목록 조회 | GET | /coupon/coupon-rules |
 | 유저 쿠폰 조회 | GET | /coupon/user |
 | 유저 쿠폰 등록 | POST | /coupon/user |
 
