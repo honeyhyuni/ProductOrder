@@ -30,43 +30,43 @@
 
 | 기능 | HTTP METHOD | URL |
 | --- | --- | --- |
-| 회원가입 | POST | accounts/signup/ |
-| 로그인 | POST | accounts/login/ |
-| 유저 토큰 확인 및 access 토큰 재발급 | GET | accounts/login/ |
-| 로그아웃 | POST | accounts/logout/ |
+| 회원가입 | POST | /accounts/signup |
+| 로그인 | POST | /accounts/login |
+| 유저 토큰 확인 및 access 토큰 재발급 | GET | /accounts/login |
+| 로그아웃 | POST | /accounts/logout |
 
 ### 제품 관련
 
 | 기능 | HTTP METHOD | URL |
 | --- | --- | --- |
-| 제품 등록 | POST | product/ |
-| 제품 목록 조회 | GET | product/ |
-| 제품 상세 조회 | GET | product/{pk}/ |
-| 제품 수정 | PUT, PATCH | product/{pk}/ |
-| 제품 삭제 | DELETE | product/{pk}/ |
-| 카테고리 목록 조회 | GET | category/ |
-| 카테고리 추가 | POST | category/ |
-| 제품 확인 및 사용 가능한 쿠폰 확인 | GET | product/{pk}/order/ |
-| 제품 구매 | POST | product/{pk}/order/ |
-| 제품 좋아요 | POST | product/{pk]/like/ |
-| 제품 좋아요 취소 | DELETE | product/{pk}/unlike/ |
+| 제품 등록 | POST | /product |
+| 제품 목록 조회 | GET | /product |
+| 제품 상세 조회 | GET | /product/{pk} |
+| 제품 수정 | PUT, PATCH | /product/{pk} |
+| 제품 삭제 | DELETE | /product/{pk} |
+| 카테고리 목록 조회 | GET | /category |
+| 카테고리 추가 | POST | /category |
+| 제품 확인 및 사용 가능한 쿠폰 확인 | GET | /product/{pk}/order |
+| 제품 구매 | POST | /product/{pk}/order |
+| 제품 좋아요 | POST | /product/{pk]/like |
+| 제품 좋아요 취소 | DELETE | /product/{pk}/unlike |
 
 ### 쿠폰 관련
 
 | 기능 | HTTP METHOD | URL |
 | --- | --- | --- |
-| 쿠폰 목록 조회 | GET | coupon/ |
-| 쿠폰 등록 | POST | coupon/ |
-| 쿠폰 룰 목록 조회 | GET | coupon/coupon_rules/ |
-| 유저 쿠폰 조회 | GET | coupon/user/ |
-| 유저 쿠폰 등록 | POST | coupon/user/ |
+| 쿠폰 목록 조회 | GET | /coupon |
+| 쿠폰 등록 | POST | /coupon |
+| 쿠폰 룰 목록 조회 | GET | /coupon/coupon_rules |
+| 유저 쿠폰 조회 | GET | /coupon/user |
+| 유저 쿠폰 등록 | POST | /coupon/user |
 
 ### 주문 관련
 
 | 기능 | HTTP METHOD | URL |
 | --- | --- | --- |
-| 주문 목록 조회 | GET | order/ |
-| 주문 상세 조회 | GET | order/{pk}/ |
+| 주문 목록 조회 | GET | /order |
+| 주문 상세 조회 | GET | /order/{pk} |
 
 <hr/>
 
